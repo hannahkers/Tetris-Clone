@@ -2,17 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Data : MonoBehaviour
+//store static data for game
+public static class Data 
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public static readonly float cos = Mathf.Cos(Mathf.PI / 2f);
+    public static readonly float sin = Mathf.Sin(Mathf.PI / 2f);
+    public static readonly float[] RotationMatrix = new float[] {cos, sin, -sin, -cos};
 
-    // Update is called once per frame
-    void Update()
+
+    public static readonly Dictionary<Tetromino, Vector2Int[]> Cells = new Dictionary<Tetromino, Vector2Int[]>()
     {
-        
-    }
+
+    };
+
 }
