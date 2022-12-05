@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class Piece : MonoBehaviour
 {
+    //*wall kick data and methods made with help*
+
     //tetris is played with one piece at a time, make one piece and re-instantiate it over and over again throughout the game
     //declare properties
 
@@ -15,12 +18,21 @@ public class Piece : MonoBehaviour
 
     public int rotationIndex { get; private set; }
 
+    public float stepDelay = 1f;
+
+    public float lockDelay = 0.5f;
+
+    private float stepTime;
+    private float lockTime;
+
     public void Initialize(Board board, Vector3Int position, TetrominoData data  )
     {
         //assign these 1:1
         this.board = board;
         this.position = position;
         this.data = data;
+        this.stepTime = Time.time + stepDelay;
+        this.lockTime = 0f;
 
         //set to 0 so it spawns in default state
         this.rotationIndex = 0;
@@ -44,6 +56,9 @@ public class Piece : MonoBehaviour
     {
         //first thing, clear the board
         board.Clear(this);
+
+        //increase lock time
+        lockTime += Time.deltaTime;
 
         if (Input.GetKeyDown(KeyCode.Q))
         {
@@ -80,13 +95,32 @@ public class Piece : MonoBehaviour
             HardDrop();
         }
 
+        if (Time.time >= this.stepTime)
+        {
+            Step();
+        }
+
         //reset after movements
         this.board.Set(this);
     }
 
-    //harddrop piece
+    private void Step()
+    {
+        //set new time
+        this.stepTime = Time.time + this.stepDelay;
+
+        //
+        Move(Vector2Int.down);
+        if (this.lockTime >= this.lockDelay)
+        {
+            Lock();
+        }
+    }
+
+    
     private void HardDrop()
     {
+        //harddrop piece
         //while we move down, continue to move down until you no longer can
         while (Move(Vector2Int.down))
         {
@@ -94,11 +128,21 @@ public class Piece : MonoBehaviour
         }
 
         //add locking
+        Lock();
     }
 
-    //player moves piece, how much they want to move the piece
+    private void Lock()
+    {
+        //lock piece in place and spawn a new piece onto the board
+        board.Set(this);
+        board.ClearCLines();
+        board.SpawnPiece();
+    }
+
     private bool Move(Vector2Int translation)
     {
+        //player moves piece, how much they want to move the piece
+
         //calculate new position 
         Vector3Int newPos = this.position;
         newPos.x += translation.x;
@@ -111,6 +155,8 @@ public class Piece : MonoBehaviour
         if (valid)
         {
             this.position = newPos;
+            //reset locktime when move is made
+            this.lockTime = 0f;
         }
 
 
@@ -119,9 +165,25 @@ public class Piece : MonoBehaviour
 
     private void Rotate(int direction)
     {
+        //store current rotation index
+        int originalRotation = this.rotationIndex;
+
         //update roation index
         this.rotationIndex = Wrap(this.rotationIndex + direction, 0, 4);
 
+        //apply rotation matrix
+        RotationMatrix(direction);
+
+        //wallkick tests, reposition in bounds
+        if (!TestWallKicks(this.rotationIndex, direction))
+        {
+            this.rotationIndex = originalRotation;
+            RotationMatrix(-direction);
+        }
+    }
+
+    private void RotationMatrix(int direction)
+    {
         for (int i = 0; i < this.cells.Length; i++)
         {
             Vector3 cell = this.cells[i];
@@ -129,7 +191,7 @@ public class Piece : MonoBehaviour
             int x, y;
 
             //apply rotation matrix to all cells
-           switch (data.tetromino)
+            switch (data.tetromino)
             {
                 case Tetromino.I:
                 case Tetromino.O:
@@ -148,17 +210,42 @@ public class Piece : MonoBehaviour
 
             cells[i] = new Vector3Int(x, y, 0);
         }
-        
-        
-
-        
-
-        //wallkick tests, reposition in bounds
     }
 
-    //wrap function from Zigurous on youtube 
+    private bool TestWallKicks(int rotationIndex, int rotationDirection)
+    {
+       //find which test to run bc "I" has a different test
+        int wallKickIndex = GetWallKickIndex(rotationIndex, rotationDirection);
+
+        for (int i = 0; i < this.data.wallKicks.GetLength(1); i++)
+        {
+            //look up transaltion in array
+            Vector2Int translation = this.data.wallKicks[wallKickIndex, i];
+
+            if (Move(translation))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private int GetWallKickIndex(int rotationIndex, int rotationDirection)
+    {
+        int wallKickIndex = rotationIndex * 2;
+
+        if (rotationIndex<0)
+        {
+            wallKickIndex--;
+        }
+        return Wrap(wallKickIndex, 0, this.data.wallKicks.GetLength(0));
+    }
+
+    
     private int Wrap(int input, int min, int max)
     {
+        //wrap function from Zigurous on youtube 
+
         if (input < min)
         {
             return max - (min - input) % (max - min);

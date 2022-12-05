@@ -23,6 +23,8 @@ public struct TetrominoData
 
     //make set private so it does not show in editor
     public Vector2Int[] cells { get; private set; }
+
+    //2d table of data
     public Vector2Int[,] wallKicks { get; private set; }
 
     public void Initialize()

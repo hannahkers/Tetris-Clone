@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 //store static data for game
+//https://tetris.fandom.com/wiki/Tetris_Wiki
 public static class Data 
 {
     public static readonly float cos = Mathf.Cos(Mathf.PI / 2f);
