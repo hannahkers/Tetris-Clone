@@ -219,7 +219,7 @@ public class Piece : MonoBehaviour
 
         for (int i = 0; i < this.data.wallKicks.GetLength(1); i++)
         {
-            //look up transaltion in array
+            //look up translation in array
             Vector2Int translation = this.data.wallKicks[wallKickIndex, i];
 
             if (Move(translation))
