@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using UnityEngine.SceneManagement;
 
 public class Board : MonoBehaviour
 {
@@ -68,9 +69,11 @@ public class Board : MonoBehaviour
 
     private void GameOver()
     {
-        this.tilemap.ClearAllTiles();
+        //this.tilemap.ClearAllTiles();
 
         //UI game over
+        
+        SceneManager.LoadScene("Game Over");
     }
 
     public void Set(Piece piece)
