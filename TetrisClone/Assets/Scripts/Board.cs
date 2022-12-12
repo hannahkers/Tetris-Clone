@@ -62,19 +62,11 @@ public class Board : MonoBehaviour
         }
         else
         {
-            GameOver();
+            FindObjectOfType<GameManager>().GameOver();
         }
         
     }
 
-    private void GameOver()
-    {
-        //this.tilemap.ClearAllTiles();
-
-        //UI game over
-        
-        SceneManager.LoadScene("Game Over");
-    }
 
     public void Set(Piece piece)
     {
@@ -172,6 +164,7 @@ public class Board : MonoBehaviour
         {
             Vector3Int position = new Vector3Int(collumn, row, 0);
             this.tilemap.SetTile(position, null);
+            FindObjectOfType<GameManager>().IncreaseScore();
         }
 
         //shift row down
